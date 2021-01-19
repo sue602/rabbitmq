@@ -35,6 +35,14 @@ function rabbitmq_center:ctor()
 	self.datas = {}
 	self.send = {
 	}
+	self.sync_log = {
+		recharge_log = true,
+		real_online_log = true,
+		rank_log = true,
+		online_log = true,
+		offline_log = true,
+		worldmap_refresh_log = true,
+	}
 	self.timer = require("timer").new()
 end
 
@@ -83,13 +91,47 @@ end
 
 --- 更新
 function rabbitmq_center:update()
-	local len = #(self.datas)
-	if len > 0 then
-		-- 写入数据库
-	end
+	self:test_write()
 	self.timer:add(self.timeout_interval,handler(self,self.update))
 end
 
+-- 写入日志
+function rabbitmq_center:test_write()
+	local data = require("achievement_config")
+	local xpcallstatus,packData = xpcall(json.encode,sharefunc.exception,data)
+	-- print("packdata =====",packData)
+	if xpcallstatus and packData and self.mqclient then
+		local destination
+		local tmpKeyTab
+		if self.sync_log[tmpKeyTab] then
+			--同步日志
+			destination = string.format("/exchange/%s.log/%s_%s",self.appid,self.appid,"sync_log")
+		else
+			--异步日志
+			destination = string.format("/exchange/%s.log/%s_%s",self.appid,self.appid,"async_log")
+		end
+		local headers = {}
+		headers["destination"] = destination
+		headers["receipt"] = self:autoid()
+		headers["app-id"] = self.appid
+		headers["persistent"] = self.persistent or "true"
+		headers["content-type"] = "application/json"
+		local ok, msg
+		if dbconf.zip then
+			headers["content-encoding"] = "deflate"
+			local zlib = require("zlib")
+	        local eof, bytes_in, outlen
+	        local compress = zlib.deflate()
+	        result, eof, bytes_in, outlen = compress(result,'finish')
+	        if result then
+				ok, msg = self.mqclient:send(result, headers)
+			end
+		else
+			ok, msg = self.mqclient:send(packData, headers)
+		end
+		skynet.error("ok,msg ",ok,msg)
+	end
+end
 
 --- 分发日志
 function rabbitmq_center:dispatch( source, address, cmd, ... )
