@@ -15,7 +15,7 @@ dbconf.mqconf = {
         vhost = "/"
     },
     ip = "192.168.8.35",
-    port = 80,
+    port = 81,
     -- ip = "192.168.8.32",
     -- port = 61613,
     appid = "rok",
