@@ -1,0 +1,33 @@
+--设置lua_path路径
+path = 
+"./?.lua;" ..
+"game/?.lua;" ..
+"game/lib/?.lua;" ..
+"game/lib/json/?.lua;" ..
+"game/lib/lua-zset/?.lua;" ..
+"game/lib/lua-timer/?.lua;" ..
+"game/service/?.lua;" ..
+"game/service/log/?.lua;"
+
+--设置lua_cpath第三方库的路径
+third_path = 
+"game/lib/json/?.so;" ..
+"game/lib/lua-zlib/?.so;" ..
+"game/lib/lua-zset/?.so;" ..
+"game/lib/lua-timer/?.so;"
+
+
+--启动配置
+thread = 8
+logger = nil
+harbor = 0
+start = "main"
+bootstrap = "snlua bootstrap"
+cpath = "./skynet/cservice/?.so"
+lua_path = "./skynet/lualib/?.lua;" .. path
+lua_cpath = "./skynet/luaclib/?.so;" .. third_path
+lualoader = "./skynet/lualib/loader.lua"
+luaservice = "./skynet/service/?.lua;" .. path
+preload = "./game/preload.lua"
+--daemon = "./skynet.pid"
+
