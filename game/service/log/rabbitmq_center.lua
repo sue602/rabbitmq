@@ -120,9 +120,9 @@ function rabbitmq_center:test_write()
 		if dbconf.zip then
 			headers["content-encoding"] = "deflate"
 			local zlib = require("zlib")
-	        local eof, bytes_in, outlen
+	        local eof, bytes_in, outlen, result
 	        local compress = zlib.deflate()
-	        result, eof, bytes_in, outlen = compress(result,'finish')
+	        result, eof, bytes_in, outlen = compress(packData,'finish')
 	        if result then
 				ok, msg = self.mqclient:send(result, headers)
 			end
