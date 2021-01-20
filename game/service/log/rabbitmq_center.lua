@@ -43,6 +43,7 @@ function rabbitmq_center:ctor()
 		offline_log = true,
 		worldmap_refresh_log = true,
 	}
+	self.data = require("achievement_config")
 	self.timer = require("timer").new()
 end
 
@@ -51,7 +52,7 @@ function rabbitmq_center:init( index )
 	skynet.error("init =",index)
 	self.index = index
 	self.countidx = 0
-	self.timeout_interval = mathrandom(1,300)
+	self.timeout_interval = mathrandom(1,30)
 	self.timer:start()
 	self.timer:add(100 + mathrandom(1,300),handler(self,self.connectMQ))
 end
@@ -95,15 +96,16 @@ function rabbitmq_center:update()
 	self.timer:add(self.timeout_interval,handler(self,self.update))
 end
 
+local count = 0
 -- 写入日志
 function rabbitmq_center:test_write()
-	local data = require("achievement_config")
+	local data = self.data
 	local xpcallstatus,packData = xpcall(json.encode,sharefunc.exception,data)
 	-- print("packdata =====",packData)
 	if xpcallstatus and packData and self.mqclient then
 		local destination
 		local tmpKeyTab
-		if self.sync_log[tmpKeyTab] then
+		if tmpKeyTab and self.sync_log[tmpKeyTab] then
 			--同步日志
 			destination = string.format("/exchange/%s.log/%s_%s",self.appid,self.appid,"sync_log")
 		else
@@ -124,12 +126,16 @@ function rabbitmq_center:test_write()
 	        local compress = zlib.deflate()
 	        result, eof, bytes_in, outlen = compress(packData,'finish')
 	        if result then
+	        	headers["content-length"] = string.len(result)
 				ok, msg = self.mqclient:send(result, headers)
 			end
 		else
 			ok, msg = self.mqclient:send(packData, headers)
 		end
-		skynet.error("ok,msg ",ok,msg)
+		if count < 1 then
+			skynet.error("ok,msg ",ok,msg)
+		end
+		count = count + 1
 	end
 end
 

@@ -169,16 +169,6 @@ end
 local function _build_frame(command, headers, body)
     local frame = {command, EOL}
 
-    if body then
-        headers["content-length"] = len(body)
-        -- if headers["content-encoding"] == "deflate" then
-        --     local zlib = require("zlib")
-        --     local compress =  zlib.deflate()
-        --     body = compress(body, "finish")
-        -- end
-        -- headers["content-length"] = len(body)
-    end
-
     for key, value in pairs(headers) do
         insert(frame, key)
         insert(frame, ":")
