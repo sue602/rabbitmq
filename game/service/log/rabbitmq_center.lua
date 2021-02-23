@@ -126,7 +126,7 @@ function rabbitmq_center:test_write()
 	        local compress = zlib.deflate()
 	        result, eof, bytes_in, outlen = compress(packData,'finish')
 	        if result then
-	        	headers["content-length"] = string.len(result)
+	        	headers["content-length"] = outlen
 				ok, msg = self.mqclient:send(result, headers)
 			end
 		else
